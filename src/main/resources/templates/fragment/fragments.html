@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <!-- jQuery and JS bundle w/ Popper.js -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+            integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
+            crossorigin="anonymous"></script>
+    <link th:href="@{/css/custom.css}" rel="stylesheet" media="screen"/>
+</head>
+<body>
+
+<div id="imageList" th:fragment="imageTable(imageData, roverName)">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="tt"><span th:text="${roverName}">ROVER</span></h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th class="tableentry" scope="col">photo ID</th>
+                    <th class="tableentry" scope="col">Camera</th>
+                    <th class="tableentry" scope="col">Sol Date</th>
+                    <th class="tableentry" scope="col">Earth Date</th>
+                    <th class="tableentry" scope="col">url</th>
+                    <th class="tableentry" scope="col">cached</th>
+                </tr>
+                </thead>
+                <tbody id="imageTableBody">
+                <tr th:if="${imageData.empty}">
+                    <th scope="row">0</th>
+                </tr>
+                <th:block th:each="image, imageIter : ${imageData}">
+                    <tr th:id="${'photoID'+image.photoId}" th:index="${imageIter}">
+                        <td class="tableentry" th:text="${image.photoId}"></td>
+                        <td class="tableentry" th:text="${image.camera}"></td>
+                        <td class="tableentry" th:text="${image.solDate}"></td>
+                        <td class="tableentry" th:text="${image.earthDate}"></td>
+                        <td class="tableentry">
+                    <span class="tableentry">
+                    <a th:href="'/getSelectedImage?photoId='+${image.photoId}" data-id='viewablePhoto'
+                       th:text="${image.imageName}">ImageMe</a>
+                    </span>
+                        </td>
+                        <td class="tableentry" th:text="${image.cached}"></td>
+                        <!--    th:text="${image.imageName}"            -->
+                    </tr>
+                </th:block>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+<div id="search" th:fragment="searchForm(roverData, imageSearch)">
+    <div class="row">
+        <div class="col-sm-1">
+            <span class="tt" th:text="${roverData.name}"></span>
+        </div>
+    </div>
+    <form id="searchForm" action="#" th:action="@{getImages}" method="get" th:object="${imageSearch}">
+        <div class="form-group">
+            <!--checkbox list of available camera -->
+            <th:block th:each="camera:${roverData.cameras}">
+                <div class="row">
+                    <div class="align-content-end col-sm-1">
+                        <input type="checkbox" class="form-control" th:value="${camera.cameraName}" id="selectCamera"/>
+                    </div>
+                    <div class="align-content-start col-sm-1">
+                        <label class="tt" th:text="${camera.cameraName}"></label>
+                    </div>
+                </div>
+            </th:block>
+            <div class="row">
+                <div class="col-sm-1">
+                    <!-- sol search date -->
+                    <label class="label" for="solDateStart">Sol Day</label>
+                    <input value="0" min="0" th:max="${roverData.maxSol}" type="number" placeholder="Integer"
+                           class="form-control" id="solDateStart" th:field="*{solDateStart}"/>
+                </div>
+                <div class="col-sm-2">
+                    <!-- earth date search date -->
+                    <label class="label" for="earthdatestart">Earth Day</label>
+                    <input id="earthdatestart" placeholder="yyyy-MM-dd" type="text" class="form-control"
+                           th:fiel="*{earthDateStart}"/>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <input type="submit" id="searchButton" value="search"/>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+
+<div id="roverdetailblock" th:fragment="roverdetails(roverData)">
+    <div class="row">
+        <div class="col align-content-start">
+            <h3>
+                <span class="tt">Rover: </span>
+                <span class="tt" th:text="${roverData.name}">OP</span>
+            </h3>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col align-content-start">
+            <h4>
+                <span class="tt">Launch Date: </span>
+                <span class="tt" th:text="${roverData.launchDate}">ld</span>
+            </h4>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col align-content-start">
+            <h4>
+                <span class="tt">Landing Date: </span>
+                <span class="tt" th:text="${roverData.landingDate}">ld</span>
+            </h4>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col align-content-start">
+            <h4>
+                <span class="tt">total number of photos: </span>
+                <span class="tt" th:text="${roverData.totalPhotos}">ld</span>
+            </h4>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col align-content-start">
+            <h4>
+                <span class="tt">Max Sol date: </span>
+                <span class="tt" th:text="${roverData.maxSol}">ld</span>
+            </h4>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col align-content-start">
+            <h4>
+                <span class="tt">Max Earth date: </span>
+                <span class="tt" th:text="${roverData.maxDate}">ld</span>
+            </h4>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col align-content-start">
+            <h4>
+                <div class="row">
+                    <span class="tt">Cameras: </span>
+                </div>
+
+                <div class="row">
+                    <div class="col">
+                        <span th:text="${roverData.cameraDisplay}" class="tt">..</span><span> : </span>
+                    </div>
+                </div>
+            </h4>
+        </div>
+    </div>
+</div>
+</body>
+</html>

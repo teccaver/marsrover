@@ -1,0 +1,40 @@
+body, html {
+    height: 100%;
+}
+.bg {
+    /* The image used */
+
+    background-image: url('../image/starfield.jpg');
+
+    /* Full height */
+    height: 100%;
+
+    /* Center and scale the image nicely */
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+.tt {
+
+    color:#fff;
+    align-content: center;
+}
+.tableentry{
+    color: lime;
+}
+.ttt{
+    color:#ffffff;
+    align-content:first;
+    font-size:9px;
+
+}
+.heading-title{
+    color:#24f2de;
+    font-size: large;
+    font-family: "Arial Rounded MT Bold";
+}
+
+.label{
+    color:#ffffff;
+    align-content: first;
+}
