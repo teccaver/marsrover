@@ -7,8 +7,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinColumns;
 
 /**
  * Describes an image but is not the image binary data.
@@ -39,12 +37,9 @@ public class Image {
     private String img_src;
     @NonNull
     private String earth_date;
-    @JoinColumn(name="rover",insertable = false,updatable = false)
     @NonNull
     private String roverName;
     @NonNull
-    @JoinColumns({@JoinColumn(name="camera", referencedColumnName="cameraName",insertable = false, updatable = false),
-        @JoinColumn(name="rover", referencedColumnName="rover",insertable = false, updatable = false)})
     private String cameraName;
     private boolean cached;
     private String cachedFile;

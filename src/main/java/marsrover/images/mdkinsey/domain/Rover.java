@@ -15,13 +15,9 @@ import java.util.List;
 @Entity
 public class Rover {
 
-//    @Id
-//    @GeneratedValue(strategy = GenerationType.AUTO)
-//    private Integer id;
     private int rover_id;
     private String status;
     @Id
-    @Column(name = "name")
     private String name;
     private String landing_date;
     private String launch_date;
@@ -108,15 +104,6 @@ public class Rover {
         this.total_photos = total_photos;
     }
 
-
-//    public Integer getId() {
-//        return id;
-//    }
-//
-//    public void setId(Integer id) {
-//        this.id = id;
-//    }
-
     public String getStatus() {
         return status;
     }
@@ -130,8 +117,7 @@ public class Rover {
     }
 
     public void setName(String name) {
-        String rover = types.ROVER.toDB(name);
-        this.name = rover;
+        this.name = types.ROVER.toDB(name);
     }
 
     public int getRover_id() {

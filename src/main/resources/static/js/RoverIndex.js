@@ -1,29 +1,23 @@
 function initRover() {
-    console.log("running here");
     let currentViewedPhoto;
+    let postData;
     overrideFormSubmit();
     getAndViewImage();
     initializeModal();
     $('#roverCarousel').on('slid.bs.carousel', function (e) {
         let parentName = '#roverdetails';
         let roverName = $(e.relatedTarget).attr('id');
-        console.log("executing slid");
-        console.log(e.relatedTarget);
         const Url = 'getRover';
-        let id = $(this).attr('id');
-        console.log(Url + "  " + id);
         //load rover
         $.get({
             url: Url,
             data: {'roverName': roverName},
             success: function (result) {
                 //add it to the page
-                // console.log(result);
                 let $parent = $(parentName);
-                console.log($parent.attr('id'));
                 $parent.empty();
                 let $el = $(result);
-                $parent.append($el);
+                $parent.appendChild($el);
                 reloadForm(roverName);
             },
             error: function (error) {
@@ -36,12 +30,16 @@ function initRover() {
     function initializeModal() {
         $('#previousImage').on('click', {'direction': 'previous'}, moveToNextImage);
         $('#nextImage').on('click', {'direction': 'next'}, moveToNextImage);
+        $('#imageViewer').on('hidden.bs.modal',function(){
+            //repopulate the form to pick up new cache values
+            populateImageListFromPostData();
+            return true;
+        })
     }
 
     function getAndViewImage() {
 
         $("#imageTableData").on("click", function (e) {
-            console.log("intercepted image click");
             e.preventDefault();
             let Url = e.target.href;
             currentViewedPhoto = $(e.target).closest('tr');
@@ -84,6 +82,17 @@ function initRover() {
         }
     }
 
+    function populateImageListFromPostData(){
+        let Url = 'getImages';
+        $.post(Url, postData, function (result) {
+            //if the no result was returned it might just be an empty page refresh
+            //in that case just keep the current content
+            // console.log(result);
+            if (result.length > 0) {
+                populateImageList(result);
+            }
+        })
+    }
     function populateImageList(imageData) {
         let $table = $('#imageTableData');
         $table.empty();
@@ -91,34 +100,15 @@ function initRover() {
         $table.append($newData);
     }
 
-
-    function resetEarthDatePicker() {
-        console.log("picking the date");
-        // $('.datepicker').datepicker({
-        //     format: 'YYYY-MM-DD',
-        //     startDate: '${rover.landingDate}',
-        //     endDate: '${rover.maxDate}'
-        // })
-    }
-
     function overrideFormSubmit() {
         // var currentRover = $('#roverCarousel.active').attr('id');
         //bounded by landingDate and maxDate
-        let maxEarthDate = '${rover.maxEarthDate}';
-        let landingDate = '${rover.landingDate}';
-        console.log("earth date bounds: " + landingDate + " - " + maxEarthDate);
-        resetEarthDatePicker();
         $('#searchForm').on('submit', function (e) {
             //send in the form update the image box
             e.preventDefault();
-            console.log("sending get for search form");
             let searchData = $('#searchForm').serializeArray();
-            let postData = {};
+            postData = {};
             //add in any form data that is changed
-            // let components = Object.values(searchData[0]);
-            // for (let i = 0; i < components.length; i+= 2) {
-            //     postData[components[i]] = components[i + 1];
-            // }
             for (let i = 0; i < searchData.length; i++) {
                 let components = Object.values(searchData[i]);
                 postData[components[0]] = components[1];
@@ -127,7 +117,7 @@ function initRover() {
             postData['roverName'] = $('#roverCarousel').find('.active').attr('name');
             let earthDate = postData['earthDateStart']
             if (earthDate) {
-                if (!verifyEarthDate(earthDate, postData['roverName'])) {
+                if (!verifyEarthDate(earthDate)) {
                     alert('Date is invalid. Date format is YYYY-MM-DD and is bounded by landing and max earth date');
                 }
             }
@@ -135,28 +125,17 @@ function initRover() {
             postData['cameras'] = [];
             $(e.target).find(':checkbox').each(function () {
                 if ($(this).prop('checked')) {
-                    //cameras.push($(this).val());
                     postData['cameras'].push($(this).val());
                 }
             })
 
-
-            let str = JSON.stringify(postData, null, 4);
-            console.log(str);
-            let Url = 'getImages';
-            $.post(Url, postData, function (result) {
-                    //if the no result was returned it might just be an empty page refresh
-                    //in that case just keep the current content
-                    console.log(result);
-                    if (result.length > 0) {
-                        populateImageList(result);
-                    }
-                }
-            )
+            // let str = JSON.stringify(postData, null, 4);
+            // console.log(str);
+            populateImageListFromPostData();
         })
     }
 
-    function verifyEarthDate(earthDate, roverName) {
+    function verifyEarthDate(earthDate) {
         //do ajax to get the rover details to verify the bounds of earth date
         //or pull the info from the rover detail page
         //for now just check the format
@@ -167,7 +146,7 @@ function initRover() {
         let groupYear = 1;
         let groupMonth = 2;
         let groupDay = 3;
-        if (match.length == 4) {
+        if (match.length === 4) {
             let minDate = (document.getElementById('minEarth').innerText);
             let maxDate = (document.getElementById('maxEarth').innerText);
             let year = match[groupYear];
@@ -195,7 +174,6 @@ function initRover() {
         //send of the request to allow the template engine to reset the form
         let Url = 'reloadSearchForm';
         let formParent = '#formparent'
-        console.log("reloading search form");
         $.get({
             url: Url,
             data: {'roverName': rover},
