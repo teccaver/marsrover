@@ -34,8 +34,8 @@ function initRover() {
     });
 
     function initializeModal() {
-        $('#previousImage').on('click', {'direction':'previous'},moveToNextImage);
-        $('#nextImage').on('click', {'direction':'next'}, moveToNextImage);
+        $('#previousImage').on('click', {'direction': 'previous'}, moveToNextImage);
+        $('#nextImage').on('click', {'direction': 'next'}, moveToNextImage);
     }
 
     function getAndViewImage() {
@@ -66,7 +66,7 @@ function initRover() {
         //find the subsequent row based on button pressed
         let $currentViewedPhoto = $(currentViewedPhoto);
         let data = e.data;
-        currentViewedPhoto = data.direction==='next'? $currentViewedPhoto.next('tr') : $currentViewedPhoto.prev('tr');
+        currentViewedPhoto = data.direction === 'next' ? $currentViewedPhoto.next('tr') : $currentViewedPhoto.prev('tr');
         let nextImage = $(currentViewedPhoto).find("[data-id='viewablePhoto']");
         viewImage(nextImage.attr('href'));
 
@@ -115,9 +115,21 @@ function initRover() {
             let searchData = $('#searchForm').serializeArray();
             let postData = {};
             //add in any form data that is changed
-            let components = Object.values(searchData[0]);
-            for (let i = 0; i < components.length; i+= 2) {
-                postData[components[i]] = components[i + 1];
+            // let components = Object.values(searchData[0]);
+            // for (let i = 0; i < components.length; i+= 2) {
+            //     postData[components[i]] = components[i + 1];
+            // }
+            for (let i = 0; i < searchData.length; i++) {
+                let components = Object.values(searchData[i]);
+                postData[components[0]] = components[1];
+            }
+            //get the selected rover
+            postData['roverName'] = $('#roverCarousel').find('.active').attr('name');
+            let earthDate = postData['earthDateStart']
+            if (earthDate) {
+                if (!verifyEarthDate(earthDate, postData['roverName'])) {
+                    alert('Date is invalid. Date format is YYYY-MM-DD and is bounded by landing and max earth date');
+                }
             }
             //find all camera that are checked
             postData['cameras'] = [];
@@ -128,8 +140,7 @@ function initRover() {
                 }
             })
 
-            //get the selected rover
-            postData['roverName'] = $('#roverCarousel').find('.active').attr('name');
+
             let str = JSON.stringify(postData, null, 4);
             console.log(str);
             let Url = 'getImages';
@@ -143,6 +154,41 @@ function initRover() {
                 }
             )
         })
+    }
+
+    function verifyEarthDate(earthDate, roverName) {
+        //do ajax to get the rover details to verify the bounds of earth date
+        //or pull the info from the rover detail page
+        //for now just check the format
+
+        let pattern = /([\d]{4})-([\d]{2})-([\d]{2})/;
+        let match = earthDate.match(pattern);
+        let valid = false;
+        let groupYear = 1;
+        let groupMonth = 2;
+        let groupDay = 3;
+        if (match.length == 4) {
+            let minDate = (document.getElementById('minEarth').innerText);
+            let maxDate = (document.getElementById('maxEarth').innerText);
+            let year = match[groupYear];
+            if (year) {
+                let month = match[groupMonth];
+                if (month) {
+                    //convert to number and verify bounds
+                    let day = match[groupDay];
+                    if (day) {
+                        //format of entered date is correct. check bounds
+                        let minD = new Date(minDate).getTime();
+                        let maxD = new Date(maxDate).getTime();
+                        let date = new Date(earthDate).getTime();
+                        if (minD <= date && date <= maxD) {
+                            valid = true;
+                        }
+                    }
+                }
+            }
+        }
+        return valid;
     }
 
     function reloadForm(rover) {

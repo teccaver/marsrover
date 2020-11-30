@@ -147,17 +147,14 @@ public class ImageIndexController {
     @RequestMapping(value = "/getImages")
     public String getImages(ImageSearch imageSearch, Model model){
         System.out.println("method getImages:\n"+imageSearch.toString());
+        boolean useSolDate = true;
         if (imageSearch.getRoverName()==null){
             //assume default
             imageSearch.setRoverName(types.ROVER.Opportunity.name());
         }
-        if (imageSearch.getEarthDateStart() != null && imageSearch.getEarthDateStart().length()!="YYYY-MM-DD".length()){
+        if (imageSearch.getEarthDateStart() != null && imageSearch.getEarthDateStart().length()=="YYYY-MM-DD".length()){
             //Valid earth date
-        }
-        else{
-            //use sol date
-
-
+            useSolDate = false;
         }
 
         //can have more than 1 camera but only 1 rover
@@ -169,7 +166,11 @@ public class ImageIndexController {
             for (String cameraName : cameraNames){
                 types.ROVER_CAMERA camera = types.ROVER_CAMERA.valueOf(cameraName);
                 //retrieve all meta data for acriteria. unknown if all the data has already been retrieved for this criteria once it is made to search for ranges.
-                RoverPhotoManifest photoManifest = imageIndex.getImagesBySolDate(rover, camera, imageSearch.getSolDateStart(), imageSearch.getPage());
+                RoverPhotoManifest photoManifest=null;
+                if (useSolDate)
+                    photoManifest = imageIndex.getImagesBySolDate(rover, camera, imageSearch.getSolDateStart(), imageSearch.getPage());
+                else
+                    photoManifest = imageIndex.getImagesByEarthDate(rover, camera, imageSearch.getEarthDateStart(), imageSearch.getPage());
                 //list in received json format
                 List<ImageJson> imageJList = photoManifest.getPhotos();
                 // list after being saved to the repository

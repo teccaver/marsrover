@@ -83,13 +83,14 @@
                     <!-- sol search date -->
                     <label class="label" for="solDateStart">Sol Day</label>
                     <input value="0" min="0" th:max="${roverData.maxSol}" type="number" placeholder="Integer"
-                           class="form-control" id="solDateStart" th:field="*{solDateStart}"/>
+                           class="form-control" id="solDateStart" th:field="*{solDateStart}"
+                            data-toggle="tooltip" data-placement="top" title="From 0 - max not used if Earth date set"/>
                 </div>
                 <div class="col-sm-2">
                     <!-- earth date search date -->
                     <label class="label" for="earthdatestart">Earth Day</label>
-                    <input id="earthdatestart" placeholder="yyyy-MM-dd" type="text" class="form-control"
-                           th:fiel="*{earthDateStart}"/>
+                    <input id="earthdatestart" placeholder="YYYY-MM-dd" type="text" class="form-control"
+                           th:field="*{earthDateStart}"/>
                 </div>
             </div>
             <div class="row">
@@ -123,7 +124,7 @@
         <div class="col align-content-start">
             <h4>
                 <span class="tt">Landing Date: </span>
-                <span class="tt" th:text="${roverData.landingDate}">ld</span>
+                <span class="tt" id="minEarth" th:text="${roverData.landingDate}">ld</span>
             </h4>
         </div>
     </div>
@@ -139,7 +140,7 @@
         <div class="col align-content-start">
             <h4>
                 <span class="tt">Max Sol date: </span>
-                <span class="tt" th:text="${roverData.maxSol}">ld</span>
+                <span class="tt" id="maxSol" th:text="${roverData.maxSol}">ld</span>
             </h4>
         </div>
     </div>
@@ -147,7 +148,7 @@
         <div class="col align-content-start">
             <h4>
                 <span class="tt">Max Earth date: </span>
-                <span class="tt" th:text="${roverData.maxDate}">ld</span>
+                <span class="tt" id="maxEarth" th:text="${roverData.maxDate}">ld</span>
             </h4>
         </div>
     </div>
