@@ -11,8 +11,10 @@ import marsrover.images.mdkinsey.services.repository.ImageServiceRepo;
 import marsrover.images.mdkinsey.services.repository.RoverServiceRepo;
 import marsrover.images.mdkinsey.types.types;
 
+import net.bytebuddy.implementation.bind.annotation.IgnoreForBinding;
 import org.hamcrest.Matchers;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,6 +46,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 //@MockBean({RoverServiceRepo.class,ImageServiceRepo.class, RestTemplateBuilder.class})
 
 @ExtendWith(MockitoExtension.class)
+@Disabled
 public class MarsRoverMVCControllerTest {
 
 
