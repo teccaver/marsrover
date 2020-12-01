@@ -9,7 +9,7 @@ To build an executable jar without executing the test cases:
 		
 Peruse NASA's image library for the Mars Rovers Opportunity, Curiosity and Spirit.
 This is a refresher project which makes use of the following technologies:
-  - spring boota
+  - spring boot
   - Javascript
   - Jquery
   - Bootstrap
@@ -17,7 +17,7 @@ This is a refresher project which makes use of the following technologies:
   - JUnit
   - Thymeleaf
   
-This is an example project which retieves images using the NASA open api's for the Mars Rovers.  
+This is an example project which retrieves images using the NASA open api's for the Mars Rovers.  
 It consists of 3 components:
   1. a web client
   2. a spring boot web MVC and JPA repository
