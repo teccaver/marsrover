@@ -25,10 +25,6 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-
-//@ContextConfiguration(classes = {MarsRoverImageIndex.class,RestTemplate.class})
-//@WebMvcTest
-//@AutoConfigureMockMvc
 @SpringBootTest
 public class MarsRoverJPARepositoryTest {
 

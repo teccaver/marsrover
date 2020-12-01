@@ -6,8 +6,8 @@ import marsrover.images.mdkinsey.converters.RoverToRoverData;
 import marsrover.images.mdkinsey.domain.Image;
 import marsrover.images.mdkinsey.domain.ImageData;
 import marsrover.images.mdkinsey.domain.ImageJson;
-import marsrover.images.mdkinsey.domain.Rover;
 import marsrover.images.mdkinsey.domain.ImageSearch;
+import marsrover.images.mdkinsey.domain.Rover;
 import marsrover.images.mdkinsey.domain.RoverData;
 import marsrover.images.mdkinsey.domain.RoverPhotoManifest;
 import marsrover.images.mdkinsey.services.MarsRoverImageIndexClient;
@@ -25,7 +25,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -38,14 +37,12 @@ import java.util.stream.Collectors;
 @Controller
 public class ImageIndexController {
 
-    private String defaultRoverName = "Opportunity";
-
     private RoverServiceRepo roverService;
     private ImageServiceRepo imageService;
     private RoverToRoverData roverToRoverData;
     private ImageJsonToImageJPA imageJsonToImageJPA;
     private ImageToImageData imageToImageData;
-    private MarsRoverImageIndexClient imageIndex;
+    private MarsRoverImageIndexClient marsRoverImageIndexClient;
 
     @Autowired
     public void setRoverServiceRepo(RoverServiceRepo roverServiceRepo){
@@ -58,7 +55,7 @@ public class ImageIndexController {
 
     @Autowired
     public void setMarsRoverImageIndexClient(MarsRoverImageIndexClient marsRoverImageIndexClient){
-        this.imageIndex = marsRoverImageIndexClient;
+        this.marsRoverImageIndexClient = marsRoverImageIndexClient;
     }
 
     @Autowired
@@ -76,8 +73,14 @@ public class ImageIndexController {
         this.roverToRoverData = roverToRoverData;
     }
 
+    /**
+     * Sets up the initial view
+     * @param model the model
+     * @return the initial view with the search form
+     */
     @RequestMapping("/")
     public String index(Model model){
+        String defaultRoverName = "Opportunity";
         Optional<Rover> rover = roverService.findById(defaultRoverName);
         System.out.println("Retireved rover for index page: "+rover.toString());
         RoverData rd = new RoverData();
@@ -91,32 +94,45 @@ public class ImageIndexController {
         return "index";
     }
 
-    @RequestMapping("/listrovers")
-    public String listRovers(){
-
-        return null;
-    }
-
+    /**
+     * Retrieves the information pertaining to a specific rover
+     * @param roverName Name of the Rover
+     * @param model the model
+     * @return the html fragment with rover details
+     */
     @RequestMapping("/getRover")
     public String getRover(@RequestParam String roverName, Model model){
         Optional<Rover> rover = roverService.findById(types.ROVER.toDB(roverName));
         System.out.println("/getRover param: "+roverName);
-        RoverData rd = roverToRoverData.convert(rover.get());
+        RoverData rd;
+        rd = rover.map(value -> roverToRoverData.convert(value)).orElse(null);
         model.addAttribute("roverData", rd);
         model.addAttribute("imageSearch", new ImageSearch());
         return "fragment/fragments :: roverdetails";
     }
 
+    /**
+     * Reloads the search form for a particular rover. The form is cleared.
+     * @param roverName name of the rover
+     * @param model the model
+     * @return A cleared search form fragment
+     */
     @RequestMapping("reloadSearchForm")
     public String reloadSearcForm(@RequestParam String roverName, Model model){
         Optional<Rover> rover = roverService.findById(roverName);
         System.out.println("reloadSearchForm param: "+roverName);
-        RoverData rd = roverToRoverData.convert(rover.get());
+        RoverData rd;
+        rd = roverToRoverData.convert(rover.get());
         model.addAttribute("roverData", rd);
         model.addAttribute("imageSearch", new ImageSearch());
         return "fragment/fragments :: searchForm";
     }
 
+    /**
+     * Retrieves the actual binary file for the image.
+     * @param photoId photo ID as assigned by the backend image library
+     * @return the image binary data
+     */
     @GetMapping(value="/getSelectedImage")
     @ResponseBody
     public ResponseEntity<byte[]> getResponse(@RequestParam Integer photoId){
@@ -125,11 +141,11 @@ public class ImageIndexController {
         if (image != null){
             List<Image> imageList = new ArrayList<>();
             imageList.add(image);
-            imageList = imageIndex.retrieveImages(imageList);
+            imageList = marsRoverImageIndexClient.retrieveImages(imageList);
             image = imageList.get(0);
             byte[] imageBytes = new byte[0];
             File f = new File(image.getCachedFile());
-            FileInputStream fileInputStream = null;
+            FileInputStream fileInputStream;
             try {
                 fileInputStream = new FileInputStream(f);
                 imageBytes = StreamUtils.copyToByteArray(fileInputStream);
@@ -144,6 +160,20 @@ public class ImageIndexController {
 
     }
 
+    /**
+     * Retrieves from the backend rest service a set of meta-data describing a set of images based on the search criteria
+     * received from the client.
+     * This set is then converted from the json format to the entity class format and saved within the repository. Another
+     * conversion to a consumer side format is then made.
+     *
+     * The intent is to support ranges where subsequent searches may overlap previous searches. Image data which already
+     * exists in the persistence store is not updated. This preserves any state changes resulting from client interaction
+     * with that specific image.
+     *
+     * @param imageSearch class containing search criteria
+     * @param model the model
+     * @return a view fragment containing the set of images meta-data which matches the search criteria
+     */
     @RequestMapping(value = "/getImages")
     public String getImages(ImageSearch imageSearch, Model model){
         System.out.println("method getImages:\n"+imageSearch.toString());
@@ -165,16 +195,16 @@ public class ImageIndexController {
             //pull down the list of pics for each camera
             for (String cameraName : cameraNames){
                 types.ROVER_CAMERA camera = types.ROVER_CAMERA.valueOf(cameraName);
-                //retrieve all meta data for acriteria. unknown if all the data has already been retrieved for this criteria once it is made to search for ranges.
-                RoverPhotoManifest photoManifest=null;
+                /* retrieve all meta data for acriteria. unknown if all the data has already been retrieved for this criteria once it is made to search for ranges. */
+                RoverPhotoManifest photoManifest;
                 if (useSolDate)
-                    photoManifest = imageIndex.getImagesBySolDate(rover, camera, imageSearch.getSolDateStart(), imageSearch.getPage());
+                    photoManifest = marsRoverImageIndexClient.getImagesBySolDate(rover, camera, imageSearch.getSolDateStart(), imageSearch.getPage());
                 else
-                    photoManifest = imageIndex.getImagesByEarthDate(rover, camera, imageSearch.getEarthDateStart(), imageSearch.getPage());
+                    photoManifest = marsRoverImageIndexClient.getImagesByEarthDate(rover, camera, imageSearch.getEarthDateStart(), imageSearch.getPage());
                 //list in received json format
                 List<ImageJson> imageJList = photoManifest.getPhotos();
                 // list after being saved to the repository
-                List<Image> savedImageList = new ArrayList();
+                List<Image> savedImageList = new ArrayList<>();
                 // save to the repository
                 buildImageForRepository(imageJList, savedImageList);
                 // convert from the repository entity to the consumable form
@@ -191,13 +221,8 @@ public class ImageIndexController {
     }
 
     /**
-     * Processes a list of images in json format as received from the NASA api call, to
-     * determine if this image meta-data has already been retrieved. This does not imply
-     * knowledge that the actual image binary data has been retrieved but only information about the
-     * image has been retrieved. It seperates the result to form a list that can be saved. This list is a
-     * reduced set so existing entries will not be overwritten.
-     * @param imageJList
-     * @param c
+     * @param imageJList a list of image meta-data in JSON format
+     * @param c the converted list of Image
      */
     private void buildImageForRepository(List<ImageJson> imageJList, List<Image> c) {
 

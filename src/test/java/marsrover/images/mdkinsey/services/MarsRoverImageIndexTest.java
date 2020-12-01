@@ -1,5 +1,6 @@
 package marsrover.images.mdkinsey.services;
 
+import marsrover.images.mdkinsey.converters.RoverJsonToRoverJPA;
 import marsrover.images.mdkinsey.domain.RoverManifest;
 import marsrover.images.mdkinsey.domain.RoverPhotoManifest;
 import marsrover.images.mdkinsey.types.types;
@@ -7,15 +8,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
 
-
-@ContextConfiguration(classes = {MarsRoverImageIndexClient.class, RestTemplate.class})
-@WebMvcTest
-@AutoConfigureMockMvc
+@SpringBootTest
 class MarsRoverImageIndexTest {
 
     private MarsRoverImageIndexClient imageIndex;
