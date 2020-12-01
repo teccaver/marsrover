@@ -17,7 +17,7 @@ function initRover() {
                 let $parent = $(parentName);
                 $parent.empty();
                 let $el = $(result);
-                $parent.appendChild($el);
+                $parent.append($el);
                 reloadForm(roverName);
             },
             error: function (error) {
@@ -56,7 +56,8 @@ function initRover() {
         newImage.id = 'roverImage';
         newImage.src = url;
         currentImage.appendChild(newImage);
-        $('#imageViewer').modal('handleUpdate')
+        $('#imageViewer').modal('handleUpdate');
+        checkToDisableImageListTraversal();
     }
 
     function moveToNextImage(e) {
@@ -68,6 +69,9 @@ function initRover() {
         let nextImage = $(currentViewedPhoto).find("[data-id='viewablePhoto']");
         viewImage(nextImage.attr('href'));
 
+    }
+
+    function checkToDisableImageListTraversal(){
         if ($(currentViewedPhoto).next('tr').length === 0) {
             //disable the button
             $('#nextImage').attr('disabled', true);
